@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lab Digital Bahasa Indonesia - Kalimat S-P-O Kelas 2 SD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Comic Neue', cursive, sans-serif;
+            background: #f0fdf4;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .font-fredoka { font-family: 'Fredoka One', cursive; }
+        .draggable-word {
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .draggable-word:active { cursor: grabbing; transform: scale(1.05); }
+        .drop-basket { transition: all 0.25s ease; }
+        .drop-basket.drag-over {
+            transform: scale(1.02);
+            border-color: #f59e0b;
+            background-color: #fef3c7;
+        }
+        .bounce-anim { animation: bounce 0.8s infinite alternate; }
+        @keyframes bounce { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
+        .basket-slot, .tree-slot { min-height: 60px; }
+        .hidden-word { display: none !important; }
+        .fade-in { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .tab-btn {
+            transition: all 0.2s;
+            border-radius: 1rem;
+            font-weight: 700;
+            padding: 0.5rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+        .tab-active {
+            background: white;
+            color: #047857;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .tab-inactive { background: transparent; color: #334155; }
+        .tab-inactive:hover { background: #d1fae5; color: #065f46; }
+        .vs-apple {
+            transition: all 0.2s;
+            border-radius: 9999px;
+            padding: 0.5rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .vs-apple:active { transform: scale(0.95); }
+        .modal-overlay {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(4px);
+        }
+        @media (max-width: 640px) {
+            .basket-slot, .tree-slot { min-height: 50px; }
+            .font-fredoka.text-5xl { font-size: 2.25rem; }
+        }
+        /* Progress bar roket */
+        .rocket-track {
+            position: relative;
+            height: 36px;
+            background: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+            border: 2px solid #cbd5e1;
+        }
+        .rocket-fill {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 0%;
+            border-radius: 9999px;
+            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding-left: 6px;
+        }
+        .rocket-icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            transition: right 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 5;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+        }
+        .team-answer-btn {
+            transition: all 0.15s;
+        }
+        .team-answer-btn:active { transform: scale(0.96); }
+        .correct-flash { animation: correctFlash 0.6s ease; }
+        @keyframes correctFlash {
+            0%,100% { background-color: inherit; }
+            50% { background-color: #86efac; }
+        }
+        .wrong-flash { animation: wrongFlash 0.6s ease; }
+        @keyframes wrongFlash {
+            0%,100% { background-color: inherit; }
+            50% { background-color: #fca5a5; }
+        }
+        .podium-1 { background: linear-gradient(180deg, #fbbf24, #f59e0b); }
+        .podium-2 { background: linear-gradient(180deg, #cbd5e1, #94a3b8); }
+        .podium-3 { background: linear-gradient(180deg, #d97706, #b45309); }
+        .confetti {
+            position: fixed;
+            width: 10px; height: 10px;
+            top: -10px;
+            z-index: 999;
+            animation: confettiFall linear forwards;
+        }
+        @keyframes confettiFall {
+            to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        /* Drag & drop kompetisi level sulit */
+        .cc-drag-word {
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .cc-drag-word:active { cursor: grabbing; transform: scale(1.05); }
+        .cc-drop-zone {
+            transition: all 0.25s ease;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #94a3b8;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.7);
+            padding: 4px;
+        }
+        .cc-drop-zone.drag-over {
+            border-color: #f59e0b;
+            background-color: #fef3c7;
+            transform: scale(1.02);
+        }
+        .cc-drop-zone.filled {
+            border-style: solid;
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+        /* Ghost elemen saat dragging (pointer-based) */
+        .drag-ghost {
+            position: fixed !important;
+            pointer-events: none !important;
+            z-index: 9999 !important;
+            opacity: 0.9;
+            transform: scale(1.08) rotate(-2deg);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            margin: 0 !important;
+        }
+    </style>
+</head>
+<body>
+
+<header class="bg-emerald-400 border-b-4 border-emerald-500 p-3 shadow-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-2">
+        <div class="flex items-center gap-2">
+            <div class="bg-white p-2 rounded-2xl shadow"><i class="fa-solid fa-book-open text-2xl text-emerald-600"></i></div>
+            <div>
+                <h1 class="font-fredoka text-xl sm:text-2xl text-slate-800">Lab Kalimat S-P-O</h1>
+                <p class="text-xs font-bold text-slate-700">Kelas 2 SD (3 Kata)</p>
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-1 bg-emerald-200 p-1 rounded-2xl border border-emerald-300">
+            <button id="tab-lab-btn" onclick="switchTab('lab')" class="tab-btn tab-active"><i class="fa-solid fa-shapes"></i> Lab</button>
+            <button id="tab-game-btn" onclick="switchTab('game')" class="tab-btn tab-inactive"><i class="fa-solid fa-gamepad"></i> Game</button>
+            <button id="tab-versus-btn" onclick="switchTab('versus')" class="tab-btn tab-inactive"><i class="fa-solid fa-trophy text-amber-500"></i> Kompetisi</button>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto w-full p-3 flex-grow">
+
+    <!-- TAB 1: LAB DRAG & DROP -->
+    <section id="sec-lab" class="space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="bg-blue-100 border-2 border-blue-300 p-3 rounded-2xl flex items-center gap-3 shadow-sm">
+                <div class="bg-blue-500 text-white p-2 rounded-2xl text-xl shadow"><i class="fa-solid fa-user"></i></div>
+                <div><span class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-md font-bold">S = Subjek</span><h4 class="font-bold text-blue-900">Pelaku / Orang</h4><p class="text-xs text-blue-800">Siapa yang melakukan?</p></div>
+            </div>
+            <div class="bg-orange-100 border-2 border-orange-300 p-3 rounded-2xl flex items-center gap-3 shadow-sm">
+                <div class="bg-orange-500 text-white p-2 rounded-2xl text-xl shadow"><i class="fa-solid fa-person-running"></i></div>
+                <div><span class="bg-orange-600 text-white text-xs px-2 py-0.5 rounded-md font-bold">P = Predikat</span><h4 class="font-bold text-orange-900">Kata Kerja / Aksi</h4><p class="text-xs text-orange-800">Apa kegiatannya?</p></div>
+            </div>
+            <div class="bg-purple-100 border-2 border-purple-300 p-3 rounded-2xl flex items-center gap-3 shadow-sm">
+                <div class="bg-purple-500 text-white p-2 rounded-2xl text-xl shadow"><i class="fa-solid fa-box-open"></i></div>
+                <div><span class="bg-purple-600 text-white text-xs px-2 py-0.5 rounded-md font-bold">O = Objek</span><h4 class="font-bold text-purple-900">Benda / Sasaran</h4><p class="text-xs text-purple-800">Benda yang dikenai aksi</p></div>
+            </div>
+        </div>
+
+        <div class="bg-white border-4 border-emerald-200 rounded-3xl p-4 sm:p-6 shadow-xl space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3 bg-emerald-50 p-3 rounded-2xl border border-emerald-200">
+                <div class="flex items-center gap-2"><i class="fa-solid fa-list-check text-emerald-600"></i><label class="font-bold text-slate-700">Pilih Contoh:</label></div>
+                <select id="sample-sentence-select" onchange="loadLabSentence(this.value)" class="w-full sm:w-auto bg-white border-2 border-emerald-400 font-bold text-emerald-800 py-1.5 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="0">1. Budi membaca buku</option>
+                    <option value="1">2. Ibu memasak nasi</option>
+                    <option value="2">3. Ayah mengendarai mobil</option>
+                    <option value="3">4. Kucing menangkap tikus</option>
+                    <option value="4">5. Adik minum susu</option>
+                    <option value="5">6. Kakak menyiram bunga</option>
+                </select>
+            </div>
+
+            <div class="text-center space-y-2">
+                <p class="font-bold text-slate-600 text-sm"><i class="fa-solid fa-hand-pointer text-amber-500 mr-1"></i> Tarik kata ke keranjang yang tepat!</p>
+                <div id="drag-words-container" class="flex flex-wrap justify-center gap-3 min-h-[70px] p-3 bg-amber-50 rounded-2xl border-2 border-dashed border-amber-300 items-center"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div id="basket-S" data-drop-zone data-basket="S" class="drop-basket bg-gradient-to-b from-blue-50 to-blue-100 border-4 border-blue-400 rounded-3xl p-4 text-center flex flex-col justify-between shadow-md min-h-[200px]">
+                    <div><div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto text-xl font-fredoka">S</div><h3 class="font-fredoka text-lg text-blue-900">SUBJEK</h3><p class="text-xs font-bold text-blue-600">(Pelaku)</p></div>
+                    <div class="basket-slot my-2 min-h-[50px] flex items-center justify-center border-2 border-dashed border-blue-300 rounded-xl bg-white/70 p-1"><span class="text-xs text-blue-400 font-bold">Letakkan Subjek</span></div>
+                    <div class="text-blue-400 text-2xl"><i class="fa-solid fa-basket-shopping"></i></div>
+                </div>
+                <div id="basket-P" data-drop-zone data-basket="P" class="drop-basket bg-gradient-to-b from-orange-50 to-orange-100 border-4 border-orange-400 rounded-3xl p-4 text-center flex flex-col justify-between shadow-md min-h-[200px]">
+                    <div><div class="w-10 h-10 bg-orange-500 text-white rounded-full flex items-center justify-center mx-auto text-xl font-fredoka">P</div><h3 class="font-fredoka text-lg text-orange-900">PREDIKAT</h3><p class="text-xs font-bold text-orange-600">(Aksi)</p></div>
+                    <div class="basket-slot my-2 min-h-[50px] flex items-center justify-center border-2 border-dashed border-orange-300 rounded-xl bg-white/70 p-1"><span class="text-xs text-orange-400 font-bold">Letakkan Predikat</span></div>
+                    <div class="text-orange-400 text-2xl"><i class="fa-solid fa-basket-shopping"></i></div>
+                </div>
+                <div id="basket-O" data-drop-zone data-basket="O" class="drop-basket bg-gradient-to-b from-purple-50 to-purple-100 border-4 border-purple-400 rounded-3xl p-4 text-center flex flex-col justify-between shadow-md min-h-[200px]">
+                    <div><div class="w-10 h-10 bg-purple-500 text-white rounded-full flex items-center justify-center mx-auto text-xl font-fredoka">O</div><h3 class="font-fredoka text-lg text-purple-900">OBJEK</h3><p class="text-xs font-bold text-purple-600">(Sasaran)</p></div>
+                    <div class="basket-slot my-2 min-h-[50px] flex items-center justify-center border-2 border-dashed border-purple-300 rounded-xl bg-white/70 p-1"><span class="text-xs text-purple-400 font-bold">Letakkan Objek</span></div>
+                    <div class="text-purple-400 text-2xl"><i class="fa-solid fa-basket-shopping"></i></div>
+                </div>
+            </div>
+
+            <div class="text-center space-y-2">
+                <div id="lab-feedback" class="font-fredoka text-lg h-8 text-emerald-600"></div>
+                <button onclick="resetLabCurrent()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-5 py-2 rounded-2xl transition shadow flex items-center gap-2 mx-auto"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 2: GAME LKPD -->
+    <section id="sec-game" class="hidden space-y-5">
+        <div class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-3xl p-5 shadow-xl flex flex-wrap justify-between items-center gap-3">
+            <div><h2 class="font-fredoka text-2xl">Game LKPD S-P-O</h2><p class="text-emerald-100 text-sm">15 Soal Menentukan Subjek, Predikat, atau Objek</p></div>
+            <div class="flex gap-4 items-center bg-white/15 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20">
+                <div class="text-center"><div class="text-xs text-emerald-100 uppercase font-bold">Skor</div><div id="game-score" class="font-fredoka text-2xl text-amber-300">0</div></div>
+                <div class="w-0.5 h-8 bg-white/20"></div>
+                <div class="text-center"><div class="text-xs text-emerald-100 uppercase font-bold">Kemajuan</div><div id="game-progress" class="font-fredoka text-lg text-white">Soal 1 / 15</div></div>
+            </div>
+        </div>
+
+        <div class="bg-white border-4 border-emerald-200 rounded-3xl p-4 sm:p-6 shadow-xl">
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                <span id="badge-target" class="bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1 rounded-full font-bold text-sm"><i class="fa-solid fa-bullseye"></i> Cari Subjek</span>
+                <button onclick="toggleGameHint()" class="text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-300 px-3 py-1 rounded-xl text-sm font-bold transition flex items-center gap-1"><i class="fa-solid fa-lightbulb text-amber-500"></i> Petunjuk</button>
+            </div>
+            <div id="game-hint-box" class="hidden mb-4 bg-sky-50 border-2 border-sky-300 p-3 rounded-2xl text-sm text-sky-900 space-y-1">
+                <p class="font-bold"><i class="fa-solid fa-circle-info mr-1"></i> Pengingat:</p>
+                <ul class="list-disc list-inside text-xs space-y-1 text-sky-800">
+                    <li><b>Subjek (S)</b>: Pelaku (contoh: Ani, Ibu).</li>
+                    <li><b>Predikat (P)</b>: Kata kerja (contoh: membaca, memasak).</li>
+                    <li><b>Objek (O)</b>: Benda yang dikenai aksi (contoh: surat, nasi).</li>
+                </ul>
+            </div>
+
+            <div class="max-w-2xl mx-auto text-center space-y-5">
+                <div><span class="text-slate-500 font-bold text-xs uppercase tracking-wider">Kalimat:</span>
+                    <div id="quiz-sentence" class="font-fredoka text-3xl sm:text-4xl text-emerald-800 bg-emerald-50 border-2 border-emerald-200 py-4 px-3 rounded-3xl tracking-wide shadow-inner">Rani menulis surat</div>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl">
+                    <p id="quiz-question-text" class="font-bold text-slate-800 text-base sm:text-lg">Kata manakah yang bertindak sebagai <span class="text-blue-600 underline">SUBJEK</span>?</p>
+                </div>
+                <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+                <div id="quiz-feedback" class="h-10 flex items-center justify-center font-bold text-base"></div>
+            </div>
+
+            <div class="flex justify-between items-center border-t border-slate-100 pt-4 mt-4">
+                <button id="btn-prev-question" onclick="prevQuestion()" class="text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 rounded-xl border border-slate-200 disabled:opacity-30 text-sm" disabled><i class="fa-solid fa-arrow-left"></i> Sebelumnya</button>
+                <button id="btn-next-question" onclick="nextQuestion()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl shadow-md transition disabled:opacity-50 text-sm">Berikutnya <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <div id="modal-result" class="hidden fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl border-4 border-emerald-400 fade-in">
+                <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner"><i class="fa-solid fa-award"></i></div>
+                <div><h3 class="font-fredoka text-2xl text-slate-800">Luar Biasa!</h3><p class="text-slate-600 font-bold text-sm">Kamu selesai 15 Soal S-P-O!</p></div>
+                <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl"><div class="text-slate-500 text-xs font-bold uppercase">Total Skor</div><div id="final-score" class="font-fredoka text-4xl text-emerald-600">100</div><div id="final-star" class="text-xl text-amber-400 space-x-1 pt-1"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div></div>
+                <button onclick="restartGame()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-fredoka text-lg py-2.5 rounded-2xl shadow-lg transition">Main Lagi <i class="fa-solid fa-rotate-right ml-1"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- TAB 3: KOMPETISI CERDAS CERMAT -->
+    <section id="sec-versus" class="hidden space-y-5">
+
+        <!-- BAGIAN 1: JUDUL APLIKASI & PENGEMBANG -->
+        <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white rounded-3xl p-5 shadow-2xl text-center">
+            <h2 class="font-fredoka text-2xl sm:text-3xl drop-shadow-md"><i class="fa-solid fa-bolt text-amber-300"></i> Cerdas Cermat S-P-O <i class="fa-solid fa-bolt text-amber-300"></i></h2>
+            <p class="text-sm sm:text-base font-bold text-indigo-100 mt-1">Ayu Lestari, S.Pd., SD 1 Yayasan Pupuk Kaltim</p>
+        </div>
+
+        <!-- HALAMAN SELAMAT DATANG & PILIH LEVEL -->
+        <div id="vs-welcome" class="bg-white border-4 border-indigo-300 rounded-3xl p-6 sm:p-10 shadow-2xl text-center space-y-6">
+            <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-full flex items-center justify-center mx-auto text-4xl shadow-lg animate-bounce">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <div>
+                <h3 class="font-fredoka text-2xl sm:text-3xl text-slate-800">Selamat Datang di Cerdas Cermat!</h3>
+                <p class="text-slate-600 font-bold text-sm mt-2">Pilih level kesulitan untuk memulai pertandingan 2 tim.<br>Tim Merah 🍎 vs Tim Hijau 🍏</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                <button onclick="startCerdasCermat('muda')" class="bg-gradient-to-br from-emerald-400 to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 text-white font-fredoka text-xl py-6 rounded-3xl shadow-xl transition transform hover:scale-105 active:scale-95 border-b-4 border-emerald-800">
+                    <i class="fa-solid fa-seedling text-3xl block mb-2"></i> MUDA
+                    <span class="text-xs font-bold block text-emerald-100 mt-1">Soal Mudah</span>
+                </button>
+                <button onclick="startCerdasCermat('sedang')" class="bg-gradient-to-br from-amber-400 to-orange-600 hover:from-amber-500 hover:to-orange-700 text-white font-fredoka text-xl py-6 rounded-3xl shadow-xl transition transform hover:scale-105 active:scale-95 border-b-4 border-orange-800">
+                    <i class="fa-solid fa-fire text-3xl block mb-2"></i> SEDANG
+                    <span class="text-xs font-bold block text-amber-100 mt-1">Soal Menengah</span>
+                </button>
+                <button onclick="startCerdasCermat('sulit')" class="bg-gradient-to-br from-rose-500 to-red-700 hover:from-rose-600 hover:to-red-800 text-white font-fredoka text-xl py-6 rounded-3xl shadow-xl transition transform hover:scale-105 active:scale-95 border-b-4 border-red-900">
+                    <i class="fa-solid fa-skull text-3xl block mb-2"></i> SULIT
+                    <span class="text-xs font-bold block text-rose-100 mt-1">Soal Tantangan</span>
+                </button>
+            </div>
+            <p class="text-xs text-slate-400 font-bold"><i class="fa-solid fa-circle-info mr-1"></i> Jawab benar +10 poin, jawab salah -5 poin. Soal tetap sampai ada yang benar!</p>
+        </div>
+
+        <!-- ARENA PERMAINAN -->
+        <div id="vs-arena" class="hidden space-y-5">
+
+            <!-- BAGIAN 2: PROGRES BAR ROKET -->
+            <div class="bg-white border-4 border-indigo-200 rounded-3xl p-4 shadow-xl">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-rose-50 border-2 border-rose-300 rounded-2xl p-3">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-fredoka text-rose-700 text-sm"><span class="text-lg">🍎</span> TIM MERAH</span>
+                            <span id="cc-score1" class="font-fredoka text-2xl text-rose-600">0</span>
+                        </div>
+                        <div class="rocket-track">
+                            <div id="cc-fill1" class="rocket-fill bg-gradient-to-l from-rose-400 to-rose-600" style="width:0%"></div>
+                            <div id="cc-rocket1" class="rocket-icon" style="right:calc(0% - 6px)">🚀</div>
+                        </div>
+                    </div>
+                    <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-3">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-fredoka text-emerald-700 text-sm"><span class="text-lg">🍏</span> TIM HIJAU</span>
+                            <span id="cc-score2" class="font-fredoka text-2xl text-emerald-600">0</span>
+                        </div>
+                        <div class="rocket-track">
+                            <div id="cc-fill2" class="rocket-fill bg-gradient-to-l from-emerald-400 to-emerald-600" style="width:0%"></div>
+                            <div id="cc-rocket2" class="rocket-icon" style="right:calc(0% - 6px)">🚀</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mt-3 pt-3 border-t border-slate-100">
+                    <span id="cc-progress-badge" class="bg-indigo-100 text-indigo-800 font-bold text-xs px-3 py-1 rounded-xl">Soal 1 / 10</span>
+                    <span id="cc-level-badge" class="bg-amber-100 text-amber-800 font-bold text-xs px-3 py-1 rounded-xl">Level: Muda</span>
+                    <button onclick="backToLevelSelect()" class="bg-slate-600 hover:bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1"><i class="fa-solid fa-home"></i> Pilih Level</button>
+                </div>
+            </div>
+
+            <!-- BAGIAN 3: SOAL (MODE PILIHAN GANDA - MUDA & SEDANG) -->
+            <div id="cc-mode-pg" class="bg-white border-4 border-purple-300 rounded-3xl p-4 sm:p-6 shadow-xl text-center">
+                <div class="text-xs font-bold text-slate-500 uppercase mb-1">Soal Cerdas Cermat:</div>
+                <div id="cc-sentence" class="font-fredoka text-2xl sm:text-4xl text-indigo-900 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-4 border-indigo-200 py-5 px-4 rounded-3xl shadow-inner">Budi membaca buku</div>
+                <div id="cc-question" class="mt-3 bg-amber-50 border border-amber-200 p-2 rounded-2xl inline-block px-4">
+                    <p class="font-bold text-slate-800 text-sm sm:text-base">Kata manakah yang bertindak sebagai <span id="cc-target" class="text-indigo-600 underline uppercase">SUBJEK</span>?</p>
+                </div>
+            </div>
+
+            <!-- BAGIAN 3B: SOAL (MODE DRAG & DROP - LEVEL SULIT) -->
+            <div id="cc-mode-drag" class="hidden bg-white border-4 border-rose-300 rounded-3xl p-4 sm:p-6 shadow-xl text-center space-y-4">
+                <div class="text-xs font-bold text-slate-500 uppercase">Soal Cerdas Cermat — Level Sulit (Drag & Drop)</div>
+                <p class="text-xs font-bold text-slate-600"><i class="fa-solid fa-hand-pointer text-amber-500 mr-1"></i> Setiap tim bermain mandiri. Selesaikan kalimatmu, soalmu akan berganti otomatis tanpa menunggu lawan!</p>
+                <div class="bg-gradient-to-r from-rose-50 to-rose-100 border-2 border-rose-300 rounded-2xl p-3">
+                    <div class="text-xs font-bold text-rose-700 uppercase mb-1">🍎 Kalimat Tim Merah:</div>
+                    <div id="cc-drag-sentence1" class="font-fredoka text-xl sm:text-2xl text-rose-900">Budi membaca buku</div>
+                </div>
+                <div class="bg-gradient-to-r from-emerald-50 to-emerald-100 border-2 border-emerald-300 rounded-2xl p-3">
+                    <div class="text-xs font-bold text-emerald-700 uppercase mb-1">🍏 Kalimat Tim Hijau:</div>
+                    <div id="cc-drag-sentence2" class="font-fredoka text-xl sm:text-2xl text-emerald-900">Ibu memasak nasi</div>
+                </div>
+            </div>
+
+            <!-- BAGIAN 4: LEMBAR JAWABAN 2 TIM -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-gradient-to-b from-rose-50 to-rose-100 border-4 border-rose-400 rounded-3xl p-4 shadow-lg">
+                    <div class="flex items-center justify-between mb-3 bg-rose-500 text-white rounded-2xl px-3 py-2">
+                        <span class="font-fredoka text-sm"><span class="text-lg">🍎</span> LEMBAR JAWABAN TIM MERAH</span>
+                        <span id="cc-feedback1" class="text-xl"></span>
+                    </div>
+                    <div id="cc-options1" class="space-y-2"></div>
+                    <div id="cc-drag-area1" class="hidden space-y-2 mt-2">
+                        <div id="cc-pool1" class="flex flex-wrap justify-center gap-2 min-h-[50px] p-2 bg-white/60 border-2 border-dashed border-rose-300 rounded-2xl"></div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="text-center">
+                                <div class="text-xs font-bold text-blue-700 mb-1">S</div>
+                                <div id="cc-drop1-S" data-drop-zone data-cc-team="1" data-cc-type="S" class="cc-drop-zone"><span class="text-xs text-blue-400 font-bold">Subjek</span></div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-xs font-bold text-orange-700 mb-1">P</div>
+                                <div id="cc-drop1-P" data-drop-zone data-cc-team="1" data-cc-type="P" class="cc-drop-zone"><span class="text-xs text-orange-400 font-bold">Predikat</span></div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-xs font-bold text-purple-700 mb-1">O</div>
+                                <div id="cc-drop1-O" data-drop-zone data-cc-team="1" data-cc-type="O" class="cc-drop-zone"><span class="text-xs text-purple-400 font-bold">Objek</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-b from-emerald-50 to-emerald-100 border-4 border-emerald-400 rounded-3xl p-4 shadow-lg">
+                    <div class="flex items-center justify-between mb-3 bg-emerald-600 text-white rounded-2xl px-3 py-2">
+                        <span class="font-fredoka text-sm"><span class="text-lg">🍏</span> LEMBAR JAWABAN TIM HIJAU</span>
+                        <span id="cc-feedback2" class="text-xl"></span>
+                    </div>
+                    <div id="cc-options2" class="space-y-2"></div>
+                    <div id="cc-drag-area2" class="hidden space-y-2 mt-2">
+                        <div id="cc-pool2" class="flex flex-wrap justify-center gap-2 min-h-[50px] p-2 bg-white/60 border-2 border-dashed border-emerald-300 rounded-2xl"></div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="text-center">
+                                <div class="text-xs font-bold text-blue-700 mb-1">S</div>
+                                <div id="cc-drop2-S" data-drop-zone data-cc-team="2" data-cc-type="S" class="cc-drop-zone"><span class="text-xs text-blue-400 font-bold">Subjek</span></div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-xs font-bold text-orange-700 mb-1">P</div>
+                                <div id="cc-drop2-P" data-drop-zone data-cc-team="2" data-cc-type="P" class="cc-drop-zone"><span class="text-xs text-orange-400 font-bold">Predikat</span></div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-xs font-bold text-purple-700 mb-1">O</div>
+                                <div id="cc-drop2-O" data-drop-zone data-cc-team="2" data-cc-type="O" class="cc-drop-zone"><span class="text-xs text-purple-400 font-bold">Objek</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="cc-global-feedback" class="text-center font-fredoka text-lg h-8"></div>
+        </div>
+
+        <!-- PAPAN PERINGKAT / JUARA -->
+        <div id="modal-cc-winner" class="hidden fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-6 max-w-lg w-full text-center space-y-4 shadow-2xl border-4 border-amber-400 fade-in">
+                <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto text-4xl shadow-inner animate-bounce"><i class="fa-solid fa-trophy"></i></div>
+                <h3 id="cc-winner-title" class="font-fredoka text-2xl sm:text-3xl text-slate-800">Selamat!</h3>
+                <p class="text-slate-600 font-bold text-sm">Papan Peringkat Juara</p>
+                <div class="space-y-2">
+                    <div id="podium-1" class="podium-1 text-white rounded-2xl p-3 flex items-center justify-between shadow-lg">
+                        <span class="font-fredoka text-lg">🥇 JUARA 1</span>
+                        <span id="podium-1-name" class="font-fredoka text-xl">Tim Merah 🍎</span>
+                        <span id="podium-1-score" class="font-fredoka text-xl">0</span>
+                    </div>
+                    <div id="podium-2" class="podium-2 text-white rounded-2xl p-3 flex items-center justify-between shadow-lg">
+                        <span class="font-fredoka text-lg">🥈 JUARA 2</span>
+                        <span id="podium-2-name" class="font-fredoka text-xl">Tim Hijau 🍏</span>
+                        <span id="podium-2-score" class="font-fredoka text-xl">0</span>
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2 pt-2">
+                    <button onclick="exportCCToExcel()" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-2xl shadow-lg transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-file-excel"></i> Analisis Excel
+                    </button>
+                    <button onclick="backToLevelSelect()" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-fredoka py-2.5 rounded-2xl shadow-lg transition">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Main Lagi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="text-center text-xs font-bold text-slate-400 py-3 border-t border-slate-200 mt-4">
+    &copy; Lab Digital Bahasa Indonesia SD - Kalimat S-P-O<br>
+    <span class="text-slate-500">SD 1 YPK / AYU LESTARI, S.Pd.</span>
+</footer>
+
+<script>
+/* ======================================================
+   DATA LAB
+====================================================== */
+const labSamples = [
+    { words: [{ text: "Budi", type: "S" }, { text: "membaca", type: "P" }, { text: "buku", type: "O" }] },
+    { words: [{ text: "Ibu", type: "S" }, { text: "memasak", type: "P" }, { text: "nasi", type: "O" }] },
+    { words: [{ text: "Ayah", type: "S" }, { text: "mengendarai", type: "P" }, { text: "mobil", type: "O" }] },
+    { words: [{ text: "Kucing", type: "S" }, { text: "menangkap", type: "P" }, { text: "tikus", type: "O" }] },
+    { words: [{ text: "Adik", type: "S" }, { text: "minum", type: "P" }, { text: "susu", type: "O" }] },
+    { words: [{ text: "Kakak", type: "S" }, { text: "menyiram", type: "P" }, { text: "bunga", type: "O" }] }
+];
+let currentLabIndex = 0;
+let labState = { S: null, P: null, O: null };
+
+/* ======================================================
+   DATA QUIZ (15 SOAL)
+====================================================== */
+const quizData = [
+    { sentence: "Budi membaca buku", askType: "S", askTitle: "SUBJEK", correctWord: "Budi", words: ["Budi", "membaca", "buku"] },
+    { sentence: "Ibu memasak nasi", askType: "S", askTitle: "SUBJEK", correctWord: "Ibu", words: ["Ibu", "memasak", "nasi"] },
+    { sentence: "Dokter mengobati pasien", askType: "S", askTitle: "SUBJEK", correctWord: "Dokter", words: ["Dokter", "mengobati", "pasien"] },
+    { sentence: "Siti memetik bunga", askType: "S", askTitle: "SUBJEK", correctWord: "Siti", words: ["Siti", "memetik", "bunga"] },
+    { sentence: "Polisi menangkap pencuri", askType: "S", askTitle: "SUBJEK", correctWord: "Polisi", words: ["Polisi", "menangkap", "pencuri"] },
+    { sentence: "Adik minum susu", askType: "P", askTitle: "PREDIKAT", correctWord: "minum", words: ["Adik", "minum", "susu"] },
+    { sentence: "Ayah mengendarai mobil", askType: "P", askTitle: "PREDIKAT", correctWord: "mengendarai", words: ["Ayah", "mengendarai", "mobil"] },
+    { sentence: "Petani menanam padi", askType: "P", askTitle: "PREDIKAT", correctWord: "menanam", words: ["Petani", "menanam", "padi"] },
+    { sentence: "Kucing mengejar tikus", askType: "P", askTitle: "PREDIKAT", correctWord: "mengejar", words: ["Kucing", "mengejar", "tikus"] },
+    { sentence: "Kelinci memakan wortel", askType: "P", askTitle: "PREDIKAT", correctWord: "memakan", words: ["Kelinci", "memakan", "wortel"] },
+    { sentence: "Kakak menyiram bunga", askType: "O", askTitle: "OBJEK", correctWord: "bunga", words: ["Kakak", "menyiram", "bunga"] },
+    { sentence: "Rani menulis surat", askType: "O", askTitle: "OBJEK", correctWord: "surat", words: ["Rani", "menulis", "surat"] },
+    { sentence: "Nelayan menangkap ikan", askType: "O", askTitle: "OBJEK", correctWord: "ikan", words: ["Nelayan", "menangkap", "ikan"] },
+    { sentence: "Sapi memakan rumput", askType: "O", askTitle: "OBJEK", correctWord: "rumput", words: ["Sapi", "memakan", "rumput"] },
+    { sentence: "Guru mengajar murid", askType: "O", askTitle: "OBJEK", correctWord: "murid", words: ["Guru", "mengajar", "murid"] }
+];
+let currentQuestionIdx = 0;
+let score = 0;
+let userAnswers = new Array(quizData.length).fill(null);
+
+/* ======================================================
+   DATA CERDAS CERMAT PER LEVEL
+====================================================== */
+const ccData = {
+    muda: [
+        { sentence: "Budi membaca buku", askType: "S", askTitle: "SUBJEK", correctWord: "Budi", words: ["Budi", "membaca", "buku"] },
+        { sentence: "Ibu memasak nasi", askType: "S", askTitle: "SUBJEK", correctWord: "Ibu", words: ["Ibu", "memasak", "nasi"] },
+        { sentence: "Adik minum susu", askType: "P", askTitle: "PREDIKAT", correctWord: "minum", words: ["Adik", "minum", "susu"] },
+        { sentence: "Ayah mengendarai mobil", askType: "P", askTitle: "PREDIKAT", correctWord: "mengendarai", words: ["Ayah", "mengendarai", "mobil"] },
+        { sentence: "Kakak menyiram bunga", askType: "O", askTitle: "OBJEK", correctWord: "bunga", words: ["Kakak", "menyiram", "bunga"] },
+        { sentence: "Rani menulis surat", askType: "O", askTitle: "OBJEK", correctWord: "surat", words: ["Rani", "menulis", "surat"] },
+        { sentence: "Kucing menangkap tikus", askType: "S", askTitle: "SUBJEK", correctWord: "Kucing", words: ["Kucing", "menangkap", "tikus"] },
+        { sentence: "Siti memetik bunga", askType: "S", askTitle: "SUBJEK", correctWord: "Siti", words: ["Siti", "memetik", "bunga"] },
+        { sentence: "Petani menanam padi", askType: "P", askTitle: "PREDIKAT", correctWord: "menanam", words: ["Petani", "menanam", "padi"] },
+        { sentence: "Guru mengajar murid", askType: "O", askTitle: "OBJEK", correctWord: "murid", words: ["Guru", "mengajar", "murid"] }
+    ],
+    sedang: [
+        { sentence: "Dokter mengobati pasien", askType: "S", askTitle: "SUBJEK", correctWord: "Dokter", words: ["Dokter", "mengobati", "pasien"] },
+        { sentence: "Polisi menangkap pencuri", askType: "S", askTitle: "SUBJEK", correctWord: "Polisi", words: ["Polisi", "menangkap", "pencuri"] },
+        { sentence: "Kelinci memakan wortel", askType: "P", askTitle: "PREDIKAT", correctWord: "memakan", words: ["Kelinci", "memakan", "wortel"] },
+        { sentence: "Kucing mengejar tikus", askType: "P", askTitle: "PREDIKAT", correctWord: "mengejar", words: ["Kucing", "mengejar", "tikus"] },
+        { sentence: "Nelayan menangkap ikan", askType: "O", askTitle: "OBJEK", correctWord: "ikan", words: ["Nelayan", "menangkap", "ikan"] },
+        { sentence: "Sapi memakan rumput", askType: "O", askTitle: "OBJEK", correctWord: "rumput", words: ["Sapi", "memakan", "rumput"] },
+        { sentence: "Ibu memasak nasi", askType: "S", askTitle: "SUBJEK", correctWord: "Ibu", words: ["Ibu", "memasak", "nasi"] },
+        { sentence: "Ayah mengendarai mobil", askType: "P", askTitle: "PREDIKAT", correctWord: "mengendarai", words: ["Ayah", "mengendarai", "mobil"] },
+        { sentence: "Kakak menyiram bunga", askType: "O", askTitle: "OBJEK", correctWord: "bunga", words: ["Kakak", "menyiram", "bunga"] },
+        { sentence: "Budi membaca buku", askType: "P", askTitle: "PREDIKAT", correctWord: "membaca", words: ["Budi", "membaca", "buku"] }
+    ],
+    sulit: [
+        {
+            mode: "drag",
+            sentence1: "Budi membaca buku",
+            sentence2: "Ibu memasak nasi",
+            words1: [{ text: "Budi", type: "S" }, { text: "membaca", type: "P" }, { text: "buku", type: "O" }],
+            words2: [{ text: "Ibu", type: "S" }, { text: "memasak", type: "P" }, { text: "nasi", type: "O" }]
+        },
+        {
+            mode: "drag",
+            sentence1: "Ayah mengendarai mobil",
+            sentence2: "Kakak menyiram bunga",
+            words1: [{ text: "Ayah", type: "S" }, { text: "mengendarai", type: "P" }, { text: "mobil", type: "O" }],
+            words2: [{ text: "Kakak", type: "S" }, { text: "menyiram", type: "P" }, { text: "bunga", type: "O" }]
+        },
+        {
+            mode: "drag",
+            sentence1: "Kucing menangkap tikus",
+            sentence2: "Adik minum susu",
+            words1: [{ text: "Kucing", type: "S" }, { text: "menangkap", type: "P" }, { text: "tikus", type: "O" }],
+            words2: [{ text: "Adik", type: "S" }, { text: "minum", type: "P" }, { text: "susu", type: "O" }]
+        },
+        {
+            mode: "drag",
+            sentence1: "Siti memetik bunga",
+            sentence2: "Rani menulis surat",
+            words1: [{ text: "Siti", type: "S" }, { text: "memetik", type: "P" }, { text: "bunga", type: "O" }],
+            words2: [{ text: "Rani", type: "S" }, { text: "menulis", type: "P" }, { text: "surat", type: "O" }]
+        },
+        {
+            mode: "drag",
+            sentence1: "Dokter mengobati pasien",
+            sentence2: "Polisi menangkap pencuri",
+            words1: [{ text: "Dokter", type: "S" }, { text: "mengobati", type: "P" }, { text: "pasien", type: "O" }],
+            words2: [{ text: "Polisi", type: "S" }, { text: "menangkap", type: "P" }, { text: "pencuri", type: "O" }]
+        },
+        {
+            mode: "drag",
+            sentence1: "Petani menanam padi",
+            sentence2: "Nelayan menangkap ikan",
+            words1: [{ text: "Petani", type: "S" }, { text: "menanam", type: "P" }, { text: "padi", type: "O" }],
+            words2: [{ text: "Nelayan", type: "S" }, { text: "menangkap", type: "P" }, { text: "ikan", type: "O" }]
+        },
+        {
+            mode: "drag",
+            sentence1: "Kelinci memakan wortel",
+            sentence2: "Sapi memakan rumput",
+            words1: [{ text: "Kelinci", type: "S" }, { text: "memakan", type: "P" }, { text: "wortel", type: "O" }],
+            words2: [{ text: "Sapi", type: "S" }, { text: "memakan", type: "P" }, { text: "rumput", type: "O" }]
+        },
+        {
+            mode: "drag",
+            sentence1: "Guru mengajar murid",
+            sentence2: "Kucing mengejar tikus",
+            words1: [{ text: "Guru", type: "S" }, { text: "mengajar", type: "P" }, { text: "murid", type: "O" }],
+            words2: [{ text: "Kucing", type: "S" }, { text: "mengejar", type: "P" }, { text: "tikus", type: "O" }]
+        },
+        {
+            mode: "drag",
+            sentence1: "Ibu memasak nasi",
+            sentence2: "Budi membaca buku",
+            words1: [{ text: "Ibu", type: "S" }, { text: "memasak", type: "P" }, { text: "nasi", type: "O" }],
+            words2: [{ text: "Budi", type: "S" }, { text: "membaca", type: "P" }, { text: "buku", type: "O" }]
+        },
+        {
+            mode: "drag",
+            sentence1: "Kakak menyiram bunga",
+            sentence2: "Ayah mengendarai mobil",
+            words1: [{ text: "Kakak", type: "S" }, { text: "menyiram", type: "P" }, { text: "bunga", type: "O" }],
+            words2: [{ text: "Ayah", type: "S" }, { text: "mengendarai", type: "P" }, { text: "mobil", type: "O" }]
+        }
+    ]
+};
+
+/* ======================================================
+   STATE CERDAS CERMAT
+====================================================== */
+let ccLevel = 'muda';
+let ccQuestions = [];
+let ccCurrentIdx = 0;
+let ccScores = { 1: 0, 2: 0 };
+let ccAnswered = { 1: false, 2: false };
+let ccHistory = [];
+let ccSoundCtx = null;
+let ccDragState = { 1: { S: null, P: null, O: null }, 2: { S: null, P: null, O: null } };
+let ccDragWords = { 1: [], 2: [] };
+
+/* === STATE TAMBAHAN UNTUK MODE SULIT (per tim main mandiri) === */
+let ccDragTeamIdx = { 1: 0, 2: 0 };          // indeks soal per tim
+let ccDragAnswered = { 1: false, 2: false }; // tim sudah benar di soal saat ini
+let ccDragLocked = { 1: false, 2: false };   // kunci sementara saat proses
+let ccMatchFinished = false;                  // flag pertandingan selesai
+
+/* ======================================================
+   INISIALISASI
+====================================================== */
+window.onload = function() {
+    loadLabSentence(0);
+    loadQuestion(0);
+};
+
+/* ======================================================
+   TAB SWITCH
+====================================================== */
+function switchTab(tab) {
+    document.getElementById('sec-lab').classList.toggle('hidden', tab !== 'lab');
+    document.getElementById('sec-game').classList.toggle('hidden', tab !== 'game');
+    document.getElementById('sec-versus').classList.toggle('hidden', tab !== 'versus');
+
+    const labBtn = document.getElementById('tab-lab-btn');
+    const gameBtn = document.getElementById('tab-game-btn');
+    const vsBtn = document.getElementById('tab-versus-btn');
+    [labBtn, gameBtn, vsBtn].forEach(b => b.className = 'tab-btn tab-inactive');
+
+    if (tab === 'lab') { labBtn.className = 'tab-btn tab-active'; }
+    else if (tab === 'game') { gameBtn.className = 'tab-btn tab-active'; }
+    else if (tab === 'versus') { vsBtn.className = 'tab-btn tab-active'; }
+
+    if (tab !== 'versus') { /* stop any cc timers if needed */ }
+    else { showCCWelcome(); }
+}
+
+/* ======================================================
+   POINTER-BASED DRAG HELPER (GLOBAL, MULTI-POINTER)
+   Mendukung banyak pointer/jari sekaligus agar kedua tim
+   dapat men-drag kata secara bersamaan.
+====================================================== */
+const pointerDrags = {};  // key: pointerId → { data, sourceEl, ghost, offsetX, offsetY, dropTarget, opts }
+
+function startPointerDrag(e, opts) {
+    e.preventDefault();
+    const sourceEl = opts.sourceEl;
+    const rect = sourceEl.getBoundingClientRect();
+
+    const ghost = sourceEl.cloneNode(true);
+    ghost.classList.add('drag-ghost');
+    ghost.style.width = rect.width + 'px';
+    ghost.style.height = rect.height + 'px';
+    ghost.style.left = rect.left + 'px';
+    ghost.style.top = rect.top + 'px';
+    document.body.appendChild(ghost);
+
+    sourceEl.classList.add('hidden-word');
+
+    pointerDrags[e.pointerId] = {
+        data: opts.data,
+        sourceEl: sourceEl,
+        ghost: ghost,
+        offsetX: e.clientX - rect.left,
+        offsetY: e.clientY - rect.top,
+        dropTarget: null,
+        opts: opts
+    };
+
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+    document.addEventListener('pointercancel', onPointerUp);
+}
+
+function onPointerMove(e) {
+    const st = pointerDrags[e.pointerId];
+    if (!st) return;
+    e.preventDefault();
+    const g = st.ghost;
+    g.style.left = (e.clientX - st.offsetX) + 'px';
+    g.style.top = (e.clientY - st.offsetY) + 'px';
+
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const dropZone = findDropZone(el);
+
+    if (st.dropTarget && st.dropTarget !== dropZone) {
+        st.dropTarget.classList.remove('drag-over');
+    }
+    if (dropZone && dropZone !== st.dropTarget) {
+        dropZone.classList.add('drag-over');
+    }
+    st.dropTarget = dropZone;
+}
+
+function onPointerUp(e) {
+    const st = pointerDrags[e.pointerId];
+    if (!st) return;
+    const g = st.ghost;
+    if (g && g.parentNode) g.parentNode.removeChild(g);
+
+    if (st.dropTarget) {
+        st.dropTarget.classList.remove('drag-over');
+    }
+
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const dropZone = findDropZone(el);
+
+    if (dropZone) {
+        const handler = st.opts.onDrop;
+        if (handler) handler(dropZone, st.data);
+    } else {
+        if (st.sourceEl && st.sourceEl.parentNode) {
+            st.sourceEl.classList.remove('hidden-word');
+        }
+    }
+
+    delete pointerDrags[e.pointerId];
+
+    if (Object.keys(pointerDrags).length === 0) {
+        document.removeEventListener('pointermove', onPointerMove);
+        document.removeEventListener('pointerup', onPointerUp);
+        document.removeEventListener('pointercancel', onPointerUp);
+    }
+}
+
+function findDropZone(el) {
+    if (!el) return null;
+    let current = el;
+    for (let i = 0; i < 8 && current; i++) {
+        if (current.hasAttribute && current.hasAttribute('data-drop-zone')) {
+            return current;
+        }
+        if (current.id) {
+            if (/^basket-[SPO]$/.test(current.id)) return current;
+            if (/^cc-drop[12]-[SPO]$/.test(current.id)) return current;
+        }
+        current = current.parentElement;
+    }
+    return null;
+}
+
+/* ======================================================
+   LAB DRAG & DROP
+====================================================== */
+function loadLabSentence(index) {
+    currentLabIndex = parseInt(index);
+    labState = { S: null, P: null, O: null };
+    document.getElementById('lab-feedback').innerHTML = '';
+
+    const sample = labSamples[currentLabIndex];
+    const shuffled = [...sample.words].sort(() => Math.random() - 0.5);
+    const container = document.getElementById('drag-words-container');
+    container.innerHTML = '';
+
+    shuffled.forEach((w, i) => {
+        const card = document.createElement('div');
+        card.id = `drag-word-${i}`;
+        card.className = `draggable-word bg-white border-2 border-amber-400 font-fredoka text-base sm:text-xl text-amber-900 px-4 py-2 rounded-2xl shadow-md`;
+        card.textContent = w.text;
+        card.dataset.type = w.type;
+        card.addEventListener('pointerdown', (e) => {
+            if (e.button !== undefined && e.button !== 0) return;
+            startPointerDrag(e, {
+                data: { text: w.text, type: w.type, id: card.id },
+                sourceEl: card,
+                onDrop: (dropZone, data) => {
+                    const targetType = dropZone.dataset.basket;
+                    if (!targetType) return;
+                    if (labState[targetType] !== null) {
+                        const orig = document.getElementById(data.id);
+                        if (orig) orig.classList.remove('hidden-word');
+                        return;
+                    }
+                    labState[targetType] = data;
+                    const orig = document.getElementById(data.id);
+                    if (orig) orig.classList.add('hidden-word');
+                    const slot = dropZone.querySelector('.basket-slot');
+                    slot.innerHTML = `
+                        <div class="bg-white border-2 border-slate-300 font-fredoka text-base text-slate-800 px-3 py-1 rounded-xl shadow flex items-center gap-2">
+                            <span>${data.text}</span>
+                            <button onclick="removeWordFromBasket('${targetType}','${data.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-bold"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    `;
+                    checkLabCompletion();
+                }
+            });
+        });
+        container.appendChild(card);
+    });
+
+    ['S', 'P', 'O'].forEach(t => resetBasketUI(t));
+}
+
+function removeWordFromBasket(basketType, cardId) {
+    labState[basketType] = null;
+    resetBasketUI(basketType);
+    const orig = document.getElementById(cardId);
+    if (orig) orig.classList.remove('hidden-word');
+    document.getElementById('lab-feedback').innerHTML = '';
+}
+
+function resetBasketUI(type) {
+    const basket = document.getElementById(`basket-${type}`);
+    const slot = basket.querySelector('.basket-slot');
+    const labelMap = { S: 'Subjek', P: 'Predikat', O: 'Objek' };
+    const colorMap = { S: 'blue', P: 'orange', O: 'purple' };
+    slot.innerHTML = `<span class="text-xs text-${colorMap[type]}-400 font-bold">Letakkan ${labelMap[type]}</span>`;
+}
+
+function resetLabCurrent() { loadLabSentence(currentLabIndex); }
+
+function checkLabCompletion() {
+    if (labState.S && labState.P && labState.O) {
+        const fb = document.getElementById('lab-feedback');
+        if (labState.S.type === 'S' && labState.P.type === 'P' && labState.O.type === 'O') {
+            fb.className = 'font-fredoka text-lg text-emerald-600 animate-bounce';
+            fb.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> Hebat! Semua tepat!';
+        } else {
+            fb.className = 'font-fredoka text-lg text-rose-500';
+            fb.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> Masih ada yang tertukar!';
+        }
+    }
+}
+
+/* ======================================================
+   GAME LKPD
+====================================================== */
+function loadQuestion(index) {
+    currentQuestionIdx = index;
+    const q = quizData[index];
+    document.getElementById('game-progress').textContent = `Soal ${index+1} / ${quizData.length}`;
+
+    const badge = document.getElementById('badge-target');
+    const map = { S: ['blue','user','Subjek (S)'], P: ['orange','person-running','Predikat (P)'], O: ['purple','box-open','Objek (O)'] };
+    const [color, icon, label] = map[q.askType];
+    badge.className = `bg-${color}-100 text-${color}-800 border border-${color}-300 px-3 py-1 rounded-full font-bold text-sm`;
+    badge.innerHTML = `<i class="fa-solid fa-${icon}"></i> Target: Cari ${label}`;
+
+    document.getElementById('quiz-sentence').textContent = `"${q.sentence}"`;
+    document.getElementById('quiz-question-text').innerHTML = `Kata manakah yang bertindak sebagai <span class="uppercase text-emerald-700 font-bold underline">${q.askTitle}</span>?`;
+
+    const container = document.getElementById('quiz-options');
+    container.innerHTML = '';
+    q.words.forEach(word => {
+        const btn = document.createElement('button');
+        btn.className = `font-fredoka text-lg sm:text-2xl bg-slate-50 hover:bg-emerald-100 border-2 border-slate-300 hover:border-emerald-400 py-3 px-2 rounded-2xl transition shadow-sm hover:scale-105 active:scale-95 text-slate-800`;
+        btn.textContent = word;
+        if (userAnswers[index] !== null) {
+            if (word === q.correctWord) btn.className += ' bg-emerald-500 text-white border-emerald-600';
+            else if (word === userAnswers[index]) btn.className += ' bg-rose-500 text-white border-rose-600';
+        }
+        btn.onclick = () => checkGameAnswer(index, word);
+        container.appendChild(btn);
+    });
+
+    document.getElementById('quiz-feedback').textContent = '';
+    document.getElementById('btn-prev-question').disabled = index === 0;
+    document.getElementById('btn-next-question').textContent = index === quizData.length-1 ? 'Selesai <i class="fa-solid fa-check"></i>' : 'Berikutnya <i class="fa-solid fa-arrow-right"></i>';
+}
+
+function checkGameAnswer(qIdx, selected) {
+    if (userAnswers[qIdx] !== null) return;
+    userAnswers[qIdx] = selected;
+    const q = quizData[qIdx];
+    const fb = document.getElementById('quiz-feedback');
+    if (selected === q.correctWord) {
+        score = Math.min(100, score + Math.round(100/quizData.length));
+        fb.className = 'h-10 flex items-center justify-center font-bold text-base text-emerald-600 animate-bounce';
+        fb.innerHTML = '<i class="fa-solid fa-circle-check mr-2"></i> Benar!';
+    } else {
+        fb.className = 'h-10 flex items-center justify-center font-bold text-base text-rose-600';
+        fb.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2"></i> Jawaban: "${q.correctWord}"`;
+    }
+    document.getElementById('game-score').textContent = score;
+    loadQuestion(qIdx);
+}
+
+function nextQuestion() {
+    if (currentQuestionIdx < quizData.length-1) loadQuestion(currentQuestionIdx+1);
+    else showFinalResults();
+}
+function prevQuestion() { if (currentQuestionIdx > 0) loadQuestion(currentQuestionIdx-1); }
+function toggleGameHint() { document.getElementById('game-hint-box').classList.toggle('hidden'); }
+
+function showFinalResults() {
+    document.getElementById('modal-result').classList.remove('hidden');
+    document.getElementById('final-score').textContent = score;
+    const stars = document.getElementById('final-star');
+    if (score >= 80) stars.innerHTML = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>';
+    else if (score >= 50) stars.innerHTML = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>';
+    else stars.innerHTML = '<i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>';
+}
+function restartGame() {
+    score = 0; userAnswers.fill(null);
+    document.getElementById('game-score').textContent = '0';
+    document.getElementById('modal-result').classList.add('hidden');
+    loadQuestion(0);
+}
+
+/* ======================================================
+   CERDAS CERMAT
+====================================================== */
+function showCCWelcome() {
+    document.getElementById('vs-welcome').classList.remove('hidden');
+    document.getElementById('vs-arena').classList.add('hidden');
+    document.getElementById('modal-cc-winner').classList.add('hidden');
+}
+
+function backToLevelSelect() {
+    document.getElementById('vs-welcome').classList.remove('hidden');
+    document.getElementById('vs-arena').classList.add('hidden');
+    document.getElementById('modal-cc-winner').classList.add('hidden');
+    document.getElementById('cc-mode-pg').classList.remove('hidden');
+    document.getElementById('cc-mode-drag').classList.add('hidden');
+    document.getElementById('cc-drag-area1').classList.add('hidden');
+    document.getElementById('cc-drag-area2').classList.add('hidden');
+    document.getElementById('cc-options1').classList.remove('hidden');
+    document.getElementById('cc-options2').classList.remove('hidden');
+}
+
+function startCerdasCermat(level) {
+    ccLevel = level;
+    ccQuestions = ccData[level];
+    ccCurrentIdx = 0;
+    ccScores = { 1: 0, 2: 0 };
+    ccHistory = [];
+    ccAnswered = { 1: false, 2: false };
+
+    /* Reset state mode sulit */
+    ccDragTeamIdx = { 1: 0, 2: 0 };
+    ccDragAnswered = { 1: false, 2: false };
+    ccDragLocked = { 1: false, 2: false };
+    ccDragState = { 1: { S: null, P: null, O: null }, 2: { S: null, P: null, O: null } };
+    ccMatchFinished = false;
+
+    document.getElementById('vs-welcome').classList.add('hidden');
+    document.getElementById('vs-arena').classList.remove('hidden');
+    document.getElementById('modal-cc-winner').classList.add('hidden');
+
+    document.getElementById('cc-level-badge').textContent = `Level: ${level.charAt(0).toUpperCase() + level.slice(1)}`;
+    updateCCProgressBar();
+    loadCCQuestion(0);
+}
+
+function updateCCProgressBar() {
+    const s1 = Math.min(100, ccScores[1]);
+    const s2 = Math.min(100, ccScores[2]);
+    document.getElementById('cc-score1').textContent = ccScores[1];
+    document.getElementById('cc-score2').textContent = ccScores[2];
+
+    const fill1 = document.getElementById('cc-fill1');
+    const fill2 = document.getElementById('cc-fill2');
+    const rocket1 = document.getElementById('cc-rocket1');
+    const rocket2 = document.getElementById('cc-rocket2');
+
+    fill1.style.width = s1 + '%';
+    fill2.style.width = s2 + '%';
+    rocket1.style.right = `calc(${s1}% - 6px)`;
+    rocket2.style.right = `calc(${s2}% - 6px)`;
+}
+
+function loadCCQuestion(index) {
+    if (ccMatchFinished) return;
+    if (index >= ccQuestions.length) {
+        showCCWinner();
+        return;
+    }
+    ccCurrentIdx = index;
+    ccAnswered = { 1: false, 2: false };
+    const q = ccQuestions[index];
+    document.getElementById('cc-progress-badge').textContent = `Soal ${index+1} / ${ccQuestions.length}`;
+
+    if (q.mode === 'drag') {
+        /* Mode sulit: kedua tim main mandiri dengan indeks masing-masing */
+        document.getElementById('cc-mode-pg').classList.add('hidden');
+        document.getElementById('cc-mode-drag').classList.remove('hidden');
+        document.getElementById('cc-options1').classList.add('hidden');
+        document.getElementById('cc-options2').classList.add('hidden');
+        document.getElementById('cc-drag-area1').classList.remove('hidden');
+        document.getElementById('cc-drag-area2').classList.remove('hidden');
+
+        ccDragTeamIdx = { 1: 0, 2: 0 };
+        ccDragAnswered = { 1: false, 2: false };
+        ccDragLocked = { 1: false, 2: false };
+        ccMatchFinished = false;
+
+        loadCCDragQuestionForTeam(1);
+        loadCCDragQuestionForTeam(2);
+        return;
+    }
+
+    /* Mode PG (muda & sedang) */
+    document.getElementById('cc-mode-pg').classList.remove('hidden');
+    document.getElementById('cc-mode-drag').classList.add('hidden');
+    document.getElementById('cc-drag-area1').classList.add('hidden');
+    document.getElementById('cc-drag-area2').classList.add('hidden');
+    document.getElementById('cc-options1').classList.remove('hidden');
+    document.getElementById('cc-options2').classList.remove('hidden');
+
+    document.getElementById('cc-sentence').textContent = `"${q.sentence}"`;
+    document.getElementById('cc-target').textContent = q.askTitle;
+
+    const shuffled = [...q.words].sort(() => Math.random() - 0.5);
+
+    [1, 2].forEach(team => {
+        const container = document.getElementById(`cc-options${team}`);
+        container.innerHTML = '';
+        shuffled.forEach(word => {
+            const btn = document.createElement('button');
+            btn.className = `team-answer-btn w-full text-left font-fredoka text-base sm:text-lg bg-white hover:bg-slate-100 border-2 border-slate-300 py-2.5 px-3 rounded-2xl shadow-sm transition text-slate-800 flex items-center gap-2`;
+            btn.innerHTML = `<span class="w-6 h-6 rounded-full ${team===1?'bg-rose-200 text-rose-700':'bg-emerald-200 text-emerald-700'} flex items-center justify-center text-xs font-bold">${team===1?'🍎':'🍏'}</span> ${word}`;
+            btn.onclick = () => handleCCAnswer(team, word, q);
+            container.appendChild(btn);
+        });
+    });
+
+    document.getElementById('cc-feedback1').innerHTML = '';
+    document.getElementById('cc-feedback2').innerHTML = '';
+    document.getElementById('cc-global-feedback').innerHTML = '';
+    document.getElementById('cc-global-feedback').className = 'text-center font-fredoka text-lg h-8';
+    playSound('move');
+}
+
+/* ======================================================
+   MODE DRAG & DROP LEVEL SULIT (per tim mandiri)
+   + Pemenang ditentukan oleh tim yang lebih dulu selesai.
+====================================================== */
+
+function loadCCDragQuestionForTeam(team) {
+    if (ccMatchFinished) return;
+
+    const idx = ccDragTeamIdx[team];
+    const total = ccQuestions.length;
+
+    document.getElementById('cc-progress-badge').textContent =
+        `Merah: ${Math.min(ccDragTeamIdx[1]+1,total)}/${total} • Hijau: ${Math.min(ccDragTeamIdx[2]+1,total)}/${total}`;
+
+    if (idx >= total) {
+        const sentenceEl = document.getElementById(`cc-drag-sentence${team}`);
+        if (sentenceEl) sentenceEl.textContent = '✅ Semua soal selesai!';
+        const pool = document.getElementById(`cc-pool${team}`);
+        if (pool) pool.innerHTML = '';
+        const area = document.getElementById(`cc-drag-area${team}`);
+        if (area) {
+            ['S','P','O'].forEach(t => {
+                const z = document.getElementById(`cc-drop${team}-${t}`);
+                if (z) { z.classList.remove('filled'); z.innerHTML = ''; }
+            });
+        }
+        checkCCDragMatchFinished();
+        return;
+    }
+
+    const q = ccQuestions[idx];
+    document.getElementById(`cc-drag-sentence${team}`).textContent =
+        team === 1 ? q.sentence1 : q.sentence2;
+
+    ccDragState[team] = { S: null, P: null, O: null };
+    ccDragAnswered[team] = false;
+    ccDragLocked[team] = false;
+
+    const words = team === 1 ? q.words1 : q.words2;
+    const shuffled = [...words].sort(() => Math.random() - 0.5);
+    renderCCPool(team, shuffled);
+
+    ['S','P','O'].forEach(type => resetCCDropZone(team, type));
+
+    const fbEl = document.getElementById(`cc-feedback${team}`);
+    if (fbEl) fbEl.innerHTML = '';
+}
+
+function loadCCDragQuestion(q) {
+    ccDragTeamIdx = { 1: 0, 2: 0 };
+    loadCCDragQuestionForTeam(1);
+    loadCCDragQuestionForTeam(2);
+}
+
+function renderCCPool(team, words) {
+    const pool = document.getElementById(`cc-pool${team}`);
+    pool.innerHTML = '';
+    ccDragWords[team] = words;
+    const colorClass = team === 1 ? 'bg-rose-500 text-white border-rose-700' : 'bg-emerald-600 text-white border-emerald-800';
+    const icon = team === 1 ? '🍎' : '🍏';
+    words.forEach((w, i) => {
+        const card = document.createElement('div');
+        card.id = `cc-word-${team}-${ccDragTeamIdx[team]}-${i}`;
+        card.className = `cc-drag-word ${colorClass} border-2 font-fredoka text-sm sm:text-base px-3 py-1.5 rounded-full shadow-md flex items-center gap-1`;
+        card.innerHTML = `<span>${icon}</span><span>${w.text}</span>`;
+        card.addEventListener('pointerdown', (e) => {
+            if (e.button !== undefined && e.button !== 0) return;
+            if (ccDragLocked[team] || ccMatchFinished) return;
+            startPointerDrag(e, {
+                data: { text: w.text, type: w.type, id: card.id, team: team },
+                sourceEl: card,
+                onDrop: (dropZone, data) => {
+                    if (ccMatchFinished) {
+                        const orig = document.getElementById(data.id);
+                        if (orig) orig.classList.remove('hidden-word');
+                        return;
+                    }
+                    const teamZone = parseInt(dropZone.dataset.ccTeam);
+                    const targetType = dropZone.dataset.ccType;
+                    if (!teamZone || !targetType) {
+                        const orig = document.getElementById(data.id);
+                        if (orig) orig.classList.remove('hidden-word');
+                        return;
+                    }
+                    if (data.team !== teamZone) {
+                        const globalFb = document.getElementById('cc-global-feedback');
+                        globalFb.className = 'text-center font-fredoka text-lg h-8 text-rose-600 animate-pulse';
+                        globalFb.innerHTML = '⚠️ Kata ini milik tim lain!';
+                        const orig = document.getElementById(data.id);
+                        if (orig) orig.classList.remove('hidden-word');
+                        clearTimeout(window._ccWarnTimer);
+                        window._ccWarnTimer = setTimeout(() => {
+                            if (globalFb.innerHTML.includes('milik tim lain')) {
+                                globalFb.innerHTML = '';
+                                globalFb.className = 'text-center font-fredoka text-lg h-8';
+                            }
+                        }, 1200);
+                        return;
+                    }
+                    if (ccDragState[teamZone][targetType] !== null) {
+                        const orig = document.getElementById(data.id);
+                        if (orig) orig.classList.remove('hidden-word');
+                        return;
+                    }
+                    ccDragState[teamZone][targetType] = data;
+                    const orig = document.getElementById(data.id);
+                    if (orig) orig.classList.add('hidden-word');
+
+                    dropZone.classList.add('filled');
+                    dropZone.innerHTML = `
+                        <div class="bg-white border-2 border-slate-300 font-fredoka text-xs sm:text-sm text-slate-800 px-2 py-1 rounded-xl shadow flex items-center gap-1">
+                            <span>${data.text}</span>
+                            <button onclick="event.stopPropagation(); ccRemoveFromDrop(${teamZone},'${targetType}','${data.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-bold"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    `;
+                    checkCCDragCompletion(teamZone);
+                }
+            });
+        });
+        pool.appendChild(card);
+    });
+}
+
+function ccRemoveFromDrop(team, type, wordId) {
+    if (ccDragLocked[team] || ccMatchFinished) return;
+    ccDragState[team][type] = null;
+    resetCCDropZone(team, type);
+    const orig = document.getElementById(wordId);
+    if (orig) orig.classList.remove('hidden-word');
+    document.getElementById('cc-global-feedback').innerHTML = '';
+}
+
+function resetCCDropZone(team, type) {
+    const zone = document.getElementById(`cc-drop${team}-${type}`);
+    if (!zone) return;
+    zone.classList.remove('filled');
+    const labelMap = { S: 'Subjek', P: 'Predikat', O: 'Objek' };
+    const colorMap = { S: 'blue', P: 'orange', O: 'purple' };
+    zone.innerHTML = `<span class="text-xs text-${colorMap[type]}-400 font-bold">${labelMap[type]}</span>`;
+}
+
+/**
+ * Cek apakah jawaban drag tim sudah lengkap (S, P, O terisi).
+ * Jika benar → +10, tim ini LANGSUNG lanjut ke soal berikutnya (mandiri).
+ * Jika salah → -5, reset kata-kata tim ini.
+ */
+function checkCCDragCompletion(team) {
+    if (ccMatchFinished) return;
+    const st = ccDragState[team];
+    if (!(st.S && st.P && st.O)) return;
+
+    const idx = ccDragTeamIdx[team];
+    const q = ccQuestions[idx];
+    const expected = team === 1 ? q.words1 : q.words2;
+
+    const isCorrect =
+        st.S.type === 'S' && st.P.type === 'P' && st.O.type === 'O' &&
+        expected.every(exp => [st.S, st.P, st.O].some(a => a.text === exp.text && a.type === exp.type));
+
+    const feedbackEl = document.getElementById(`cc-feedback${team}`);
+    const globalFb = document.getElementById('cc-global-feedback');
+
+    if (isCorrect) {
+        if (ccDragAnswered[team]) return;
+        ccDragAnswered[team] = true;
+        ccDragLocked[team] = true;
+        ccScores[team] += 10;
+        feedbackEl.innerHTML = '<i class="fa-solid fa-circle-check text-green-600 animate-bounce"></i>';
+
+        ccHistory.push({
+            soal: idx + 1,
+            kalimat: team === 1 ? q.sentence1 : q.sentence2,
+            target: 'S-P-O (Drag)',
+            tim: team === 1 ? 'Tim Merah' : 'Tim Hijau',
+            jawaban: `${st.S.text} | ${st.P.text} | ${st.O.text}`,
+            status: 'Benar',
+            poin: '+10',
+            skorMerah: ccScores[1],
+            skorHijau: ccScores[2]
+        });
+        playSound('correct');
+        updateCCProgressBar();
+        globalFb.className = 'text-center font-fredoka text-lg h-8 text-emerald-600 animate-bounce';
+        globalFb.innerHTML = `✅ Tim ${team===1?'Merah 🍎':'Hijau 🍏'} BENAR! +10 poin. Lanjut soal berikutnya...`;
+
+        setTimeout(() => {
+            ccDragTeamIdx[team] += 1;
+            loadCCDragQuestionForTeam(team);
+            checkCCDragMatchFinished();
+        }, 900);
+    } else {
+        ccDragLocked[team] = true;
+        ccScores[team] = Math.max(0, ccScores[team] - 5);
+        feedbackEl.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-600 animate-pulse"></i>';
+
+        ccHistory.push({
+            soal: idx + 1,
+            kalimat: team === 1 ? q.sentence1 : q.sentence2,
+            target: 'S-P-O (Drag)',
+            tim: team === 1 ? 'Tim Merah' : 'Tim Hijau',
+            jawaban: `${st.S.text} | ${st.P.text} | ${st.O.text}`,
+            status: 'Salah',
+            poin: '-5',
+            skorMerah: ccScores[1],
+            skorHijau: ccScores[2]
+        });
+        playSound('wrong');
+        updateCCProgressBar();
+        globalFb.className = 'text-center font-fredoka text-lg h-8 text-rose-600';
+        globalFb.innerHTML = `❌ Tim ${team===1?'Merah 🍎':'Hijau 🍏'} SALAH! -5 poin. Coba lagi!`;
+
+        setTimeout(() => {
+            ['S','P','O'].forEach(t => {
+                const w = ccDragState[team][t];
+                if (w) {
+                    const orig = document.getElementById(w.id);
+                    if (orig) orig.classList.remove('hidden-word');
+                }
+            });
+            ccDragState[team] = { S: null, P: null, O: null };
+            ['S','P','O'].forEach(t => resetCCDropZone(team, t));
+            feedbackEl.innerHTML = '';
+            ccDragLocked[team] = false;
+        }, 1200);
+    }
+}
+
+/**
+ * Cek apakah pertandingan sudah selesai.
+ * Pemenang = tim yang lebih dulu menyelesaikan SEMUA soal.
+ * Jika salah satu tim sudah selesai, langsung tampilkan pemenang.
+ */
+function checkCCDragMatchFinished() {
+    if (ccMatchFinished) return;
+    const total = ccQuestions.length;
+    const t1Done = ccDragTeamIdx[1] >= total;
+    const t2Done = ccDragTeamIdx[2] >= total;
+
+    if (t1Done || t2Done) {
+        ccMatchFinished = true;
+        // Tentukan pemenang: yang lebih dulu selesai
+        // Jika keduanya selesai bersamaan, pemenang = poin tertinggi
+        let winner = null;
+        if (t1Done && t2Done) {
+            winner = ccScores[1] >= ccScores[2] ? 1 : 2;
+        } else if (t1Done) {
+            winner = 1;
+        } else {
+            winner = 2;
+        }
+        window._ccWinner = winner;
+        setTimeout(() => {
+            showCCWinner();
+        }, 800);
+    }
+}
+
+function handleCCAnswer(team, selectedWord, q) {
+    if (ccAnswered[team]) return;
+    const isCorrect = selectedWord === q.correctWord;
+    const feedbackEl = document.getElementById(`cc-feedback${team}`);
+    const globalFb = document.getElementById('cc-global-feedback');
+
+    if (isCorrect) {
+        ccAnswered[team] = true;
+        ccScores[team] += 10;
+        feedbackEl.innerHTML = '<i class="fa-solid fa-circle-check text-green-600 animate-bounce"></i>';
+        ccHistory.push({
+            soal: ccCurrentIdx + 1,
+            kalimat: q.sentence,
+            target: q.askTitle,
+            tim: team === 1 ? 'Tim Merah' : 'Tim Hijau',
+            jawaban: selectedWord,
+            status: 'Benar',
+            poin: '+10',
+            skorMerah: ccScores[1],
+            skorHijau: ccScores[2]
+        });
+        playSound('correct');
+        event.target.closest('button')?.classList.add('correct-flash');
+        updateCCProgressBar();
+        globalFb.className = 'text-center font-fredoka text-lg h-8 text-emerald-600 animate-bounce';
+        globalFb.innerHTML = `✅ Tim ${team===1?'Merah 🍎':'Hijau 🍏'} BENAR! +10 poin. Soal berikutnya...`;
+        setTimeout(() => {
+            loadCCQuestion(ccCurrentIdx + 1);
+        }, 1500);
+    } else {
+        ccScores[team] = Math.max(0, ccScores[team] - 5);
+        feedbackEl.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-600 animate-pulse"></i>';
+        ccHistory.push({
+            soal: ccCurrentIdx + 1,
+            kalimat: q.sentence,
+            target: q.askTitle,
+            tim: team === 1 ? 'Tim Merah' : 'Tim Hijau',
+            jawaban: selectedWord,
+            status: 'Salah',
+            poin: '-5',
+            skorMerah: ccScores[1],
+            skorHijau: ccScores[2]
+        });
+        playSound('wrong');
+        event.target.closest('button')?.classList.add('wrong-flash');
+        updateCCProgressBar();
+        globalFb.className = 'text-center font-fredoka text-lg h-8 text-rose-600';
+        globalFb.innerHTML = `❌ Tim ${team===1?'Merah 🍎':'Hijau 🍏'} SALAH! -5 poin. Coba lagi!`;
+    }
+}
+
+function showCCWinner() {
+    // Tutup area permainan, tampilkan layar pemenang
+    document.getElementById('vs-arena').classList.add('hidden');
+    document.getElementById('vs-welcome').classList.add('hidden');
+    document.getElementById('modal-cc-winner').classList.remove('hidden');
+    playSound('applause');
+    for (let i = 0; i < 60; i++) {
+        createConfetti();
+    }
+
+    const t1 = ccScores[1], t2 = ccScores[2];
+    const total = ccQuestions.length;
+    const t1Done = ccDragTeamIdx[1] >= total;
+    const t2Done = ccDragTeamIdx[2] >= total;
+
+    let p1Name, p1Score, p2Name, p2Score, winnerName;
+
+    // Tentukan juara berdasarkan siapa yang lebih dulu selesai
+    if (window._ccWinner === 1) {
+        p1Name = 'Tim Merah 🍎'; p1Score = t1;
+        p2Name = 'Tim Hijau 🍏'; p2Score = t2;
+        winnerName = 'Tim Merah 🍎';
+    } else if (window._ccWinner === 2) {
+        p1Name = 'Tim Hijau 🍏'; p1Score = t2;
+        p2Name = 'Tim Merah 🍎'; p2Score = t1;
+        winnerName = 'Tim Hijau 🍏';
+    } else {
+        // fallback berdasarkan skor
+        if (t1 >= t2) {
+            p1Name = 'Tim Merah 🍎'; p1Score = t1;
+            p2Name = 'Tim Hijau 🍏'; p2Score = t2;
+            winnerName = 'Tim Merah 🍎';
+        } else {
+            p1Name = 'Tim Hijau 🍏'; p1Score = t2;
+            p2Name = 'Tim Merah 🍎'; p2Score = t1;
+            winnerName = 'Tim Hijau 🍎';
+        }
+    }
+
+    document.getElementById('podium-1-name').textContent = p1Name;
+    document.getElementById('podium-1-score').textContent = p1Score + ' Poin';
+    document.getElementById('podium-2-name').textContent = p2Name;
+    document.getElementById('podium-2-score').textContent = p2Score + ' Poin';
+
+    if (t1 === t2 && t1Done && t2Done) {
+        document.getElementById('cc-winner-title').textContent = '🤝 Hasil Seri!';
+    } else {
+        document.getElementById('cc-winner-title').textContent = `🏆 ${winnerName} Menang!`;
+    }
+}
+
+function createConfetti() {
+    const colors = ['#f43f5e', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'];
+    const el = document.createElement('div');
+    el.className = 'confetti';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    el.style.animationDelay = Math.random() * 0.5 + 's';
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+}
+
+/* ======================================================
+   EFEK SUARA (Web Audio API)
+====================================================== */
+function playSound(type) {
+    try {
+        if (!ccSoundCtx) ccSoundCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const ctx = ccSoundCtx;
+        const now = ctx.currentTime;
+        if (type === 'correct') {
+            [523.25, 659.25, 783.99].forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.15, now + i * 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.start(now + i * 0.1); osc.stop(now + i * 0.1 + 0.3);
+            });
+        } else if (type === 'wrong') {
+            [400, 300, 200].forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.12, now + i * 0.12);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.25);
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.start(now + i * 0.12); osc.stop(now + i * 0.12 + 0.25);
+            });
+        } else if (type === 'move') {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.exponentialRampToValueAtTime(900, now + 0.1);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(now); osc.stop(now + 0.15);
+        } else if (type === 'applause') {
+            const bufferSize = ctx.sampleRate * 1.5;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+            }
+            const source = ctx.createBufferSource();
+            source.buffer = buffer;
+            const gain = ctx.createGain();
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+            source.connect(gain); gain.connect(ctx.destination);
+            source.start(now);
+        }
+    } catch (e) { /* fallback senyap */ }
+}
+
+/* ======================================================
+   EXPORT EXCEL (DAPAT DIUNDUH)
+====================================================== */
+function exportCCToExcel() {
+    let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
+    html += `<head><meta charset="UTF-8">`;
+    html += `<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>`;
+    html += `<x:Name>Analisis Cerdas Cermat</x:Name>`;
+    html += `<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>`;
+    html += `</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->`;
+    html += `<style>
+        table { border-collapse: collapse; font-family: Arial, sans-serif; }
+        th { background: #4F46E5; color: white; border: 1px solid #333; padding: 8px; font-weight: bold; }
+        td { border: 1px solid #999; padding: 6px; }
+        .benar { background: #D1FAE5; color: #065F46; font-weight: bold; }
+        .salah { background: #FEE2E2; color: #991B1B; font-weight: bold; }
+        .header-info { font-size: 14px; font-weight: bold; }
+        h2 { color: #4F46E5; }
+    </style></head><body>`;
+
+    html += `<h2>📊 Analisis Hasil Cerdas Cermat S-P-O</h2>`;
+    html += `<p class="header-info">Aplikasi: Cerdas Cermat S-P-O</p>`;
+    html += `<p class="header-info">Pengembang: Ayu Lestari, S.Pd., SD 1 Yayasan Pupuk Kaltim</p>`;
+    html += `<p class="header-info">Level: ${ccLevel.toUpperCase()}</p>`;
+    html += `<p class="header-info">Tanggal: ${new Date().toLocaleString('id-ID')}</p>`;
+    html += `<hr>`;
+    html += `<p class="header-info">🏆 Skor Akhir — Tim Merah 🍎: <b>${ccScores[1]} poin</b> | Tim Hijau 🍏: <b>${ccScores[2]} poin</b></p>`;
+    html += `<br>`;
+
+    html += `<table>`;
+    html += `<thead><tr>
+        <th>No</th>
+        <th>Soal Ke</th>
+        <th>Kalimat</th>
+        <th>Target</th>
+        <th>Tim</th>
+        <th>Jawaban</th>
+        <th>Status</th>
+        <th>Poin</th>
+        <th>Skor Merah</th>
+        <th>Skor Hijau</th>
+    </tr></thead><tbody>`;
+
+    if (ccHistory.length === 0) {
+        html += `<tr><td colspan="10" style="text-align:center;color:#999;">Belum ada data jawaban.</td></tr>`;
+    } else {
+        ccHistory.forEach((r, i) => {
+            const statusClass = r.status === 'Benar' ? 'benar' : 'salah';
+            html += `<tr>
+                <td>${i + 1}</td>
+                <td>${r.soal}</td>
+                <td>${r.kalimat}</td>
+                <td>${r.target}</td>
+                <td>${r.tim}</td>
+                <td>${r.jawaban}</td>
+                <td class="${statusClass}">${r.status}</td>
+                <td>${r.poin}</td>
+                <td>${r.skorMerah}</td>
+                <td>${r.skorHijau}</td>
+            </tr>`;
+        });
+    }
+    html += `</tbody></table>`;
+
+    const totalBenarMerah = ccHistory.filter(h => h.tim === 'Tim Merah' && h.status === 'Benar').length;
+    const totalSalahMerah = ccHistory.filter(h => h.tim === 'Tim Merah' && h.status === 'Salah').length;
+    const totalBenarHijau = ccHistory.filter(h => h.tim === 'Tim Hijau' && h.status === 'Benar').length;
+    const totalSalahHijau = ccHistory.filter(h => h.tim === 'Tim Hijau' && h.status === 'Salah').length;
+
+    html += `<br><h3>📈 Ringkasan Statistik</h3>`;
+    html += `<table>
+        <thead><tr><th>Tim</th><th>Jawaban Benar</th><th>Jawaban Salah</th><th>Total Poin</th><th>Predikat</th></tr></thead>
+        <tbody>
+            <tr><td>Tim Merah 🍎</td><td>${totalBenarMerah}</td><td>${totalSalahMerah}</td><td>${ccScores[1]}</td><td>${ccScores[1] >= ccScores[2] ? '🏆 Juara 1' : '🥈 Juara 2'}</td></tr>
+            <tr><td>Tim Hijau 🍏</td><td>${totalBenarHijau}</td><td>${totalSalahHijau}</td><td>${ccScores[2]}</td><td>${ccScores[2] > ccScores[1] ? '🏆 Juara 1' : (ccScores[1] === ccScores[2] ? '🤝 Seri' : '🥈 Juara 2')}</td></tr>
+        </tbody>
+    </table>`;
+
+    html += `</body></html>`;
+
+    const blob = new Blob(['\ufeff', html], {
+        type: 'application/vnd.ms-excel;charset=utf-8'
+    });
+
+    const namaFile = `Analisis_CerdasCermat_SPO_Level_${ccLevel}_${new Date().toISOString().slice(0,10)}.xls`;
+
+    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+        window.navigator.msSaveOrOpenBlob(blob, namaFile);
+    } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = namaFile;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 1000);
+    }
+
+    const fb = document.getElementById('cc-global-feedback');
+    if (fb) {
+        fb.className = 'text-center font-fredoka text-lg h-8 text-green-600 animate-bounce';
+        fb.innerHTML = '📥 File Excel berhasil diunduh!';
+        setTimeout(() => { fb.innerHTML = ''; }, 3000);
+    }
+}
+</script>
+</body>
+</html>
